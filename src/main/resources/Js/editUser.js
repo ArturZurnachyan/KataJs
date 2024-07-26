@@ -16,7 +16,7 @@ modalEdit.addEventListener("submit", async function(event){
 
     let roles = [];
     for (let option of rolesSelected.selectedOptions) {
-        if(option.value === ROLE_USER.role) {
+        if (option.value === ROLE_USER.role) {
             roles.push(ROLE_USER);
         } else if (option.value === ROLE_ADMIN.role) {
             roles.push(ROLE_ADMIN);

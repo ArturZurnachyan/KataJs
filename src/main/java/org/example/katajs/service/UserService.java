@@ -29,6 +29,7 @@ public class UserService {
         this.roleService = roleService;
         this.modelMapper = modelMapper;
     }
+
     public List<User> findAll() {
         return userRepository.findAll();
     }
@@ -45,10 +46,17 @@ public class UserService {
     @Transactional
     public void updateUser(UserDTO user) {
         if(user.getRoleList()==null){
-            user.setRoleList(Collections.singleton(new Role(1L,"ROLE_USER")));
+            user.setRoleList(Collections.singleton(new Role(1L,"USER")));
         }
         user.setRoleList(user.getRoleList().stream()
-                .map(role -> roleService.getByRole(role.getRole()))
+                .map(role -> {
+                    String roleName = role.getRole().replace("ROLE_", ""); // Удаление префикса
+                    Role foundRole = roleService.getByRole(roleName);
+                    if (foundRole == null) {
+                        System.out.println("Role not found for: " + roleName);
+                    }
+                    return foundRole;
+                })
                 .collect(Collectors.toSet()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(convertingFromUserDTOToUser(user));
@@ -57,10 +65,17 @@ public class UserService {
     @Transactional
     public void saveUserWithRoles(UserDTO user) {
         if(user.getRoleList()==null){
-            user.setRoleList(Collections.singleton(new Role(1,"Role_USER")));
+            user.setRoleList(Collections.singleton(new Role(1L,"USER")));
         }
         user.setRoleList(user.getRoleList().stream()
-                .map(role->roleService.getByRole(role.getRole()))
+                .map(role -> {
+                    String roleName = role.getRole().replace("ROLE_", ""); // Удаление префикса
+                    Role foundRole = roleService.getByRole(roleName);
+                    if (foundRole == null) {
+                        System.out.println("Role not found for: " + roleName);
+                    }
+                    return foundRole;
+                })
                 .collect(Collectors.toSet()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(convertingFromUserDTOToUser(user));
@@ -75,18 +90,11 @@ public class UserService {
 
 
     public UserDTO getUserById(Long id) {
-        return convertingFromUserToUserDTO(userRepository.findById(id).orElse(null));
+        return convertingFromUserToUserDTO(userRepository.getById(id));
     }
 
     private User convertingFromUserDTOToUser(UserDTO userDTO) {
-        User user = new User();
-        user.setId(userDTO.getId());
-        user.setName(userDTO.getName());
-        user.setSurname(userDTO.getSurname());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
-        user.setRoleList(userDTO.getRoleList());
-        return user;
+        return  modelMapper.map(userDTO,User.class);
     }
 
     private UserDTO convertingFromUserToUserDTO(User user) {

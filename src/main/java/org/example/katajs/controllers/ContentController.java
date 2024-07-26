@@ -59,7 +59,6 @@ public class ContentController {
 
     @PutMapping("api/admin")
     public ResponseEntity<HttpStatus> editUser(@RequestBody @Valid UserDTO user){
-        System.out.println(user);
         userService.updateUser(user);
         return new ResponseEntity<>(HttpStatus.OK);
     }
